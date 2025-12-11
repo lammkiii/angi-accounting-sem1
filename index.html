@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會計小測驗 - Chiikawa Ver. 2.0</title>
+    <title>會計小測驗 - 中英對照版</title>
     <style>
         /* 吉伊卡哇風格配色與字體 */
         :root {
@@ -14,7 +14,8 @@
             --correct-green: #98E298;
             --wrong-red: #FF9AA2;
             --button-shadow: #E598A5;
-            --timer-bg: #FFFACD; /* 鵝黃色計時器 */
+            --timer-bg: #FFFACD;
+            --zh-color: #8E8083; /* 中文翻譯的顏色 */
         }
 
         body {
@@ -35,7 +36,7 @@
         .container {
             background-color: var(--soft-white);
             width: 100%;
-            max-width: 600px;
+            max-width: 650px; /*稍微加寬以容納雙語*/
             border-radius: 30px;
             box-shadow: 0 10px 25px rgba(255, 183, 197, 0.6);
             padding: 30px;
@@ -45,7 +46,7 @@
             overflow: hidden;
         }
 
-        /* 頂部導航列 (主頁鈕 + 計時器) */
+        /* 頂部導航列 */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -81,7 +82,6 @@
             box-shadow: 0 2px 0 #FFE4B5;
         }
 
-        /* 頂部裝飾 */
         .header-decoration {
             font-size: 3rem;
             margin-bottom: 10px;
@@ -94,21 +94,38 @@
             text-shadow: 2px 2px 0px white;
         }
 
+        /* 題目區域樣式優化 */
         .question-box {
             background: white;
             border-radius: 20px;
-            padding: 20px;
+            padding: 25px;
             margin-bottom: 20px;
             border: 3px solid var(--primary-pink);
             box-shadow: inset 0 0 10px rgba(255, 183, 197, 0.2);
-            position: relative;
+            text-align: left; /* 題目靠左對齊比較好閱讀雙語 */
         }
 
         .question-text {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             font-weight: bold;
-            margin-bottom: 20px;
-            line-height: 1.5;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        /* 中文翻譯樣式 */
+        .zh-trans {
+            display: block;
+            font-size: 0.9em;
+            color: var(--zh-color);
+            margin-top: 4px;
+            font-weight: normal;
+        }
+
+        .question-text .zh-trans {
+            margin-top: 8px;
+            font-size: 1rem;
+            border-top: 1px dashed #eee;
+            padding-top: 8px;
         }
 
         .options-grid {
@@ -129,6 +146,7 @@
             box-shadow: 0 4px 0 var(--button-shadow);
             position: relative;
             text-align: left;
+            line-height: 1.3;
         }
 
         .btn:hover:not([disabled]) {
@@ -144,26 +162,28 @@
 
         .btn:disabled {
             cursor: default;
-            opacity: 0.8;
+            opacity: 0.9; /* 提高不透明度讓翻譯更清楚 */
             transform: none !important;
             box-shadow: 0 4px 0 var(--button-shadow) !important;
         }
 
-        /* 答對樣式 */
         .btn.correct {
             background-color: var(--correct-green);
             border-color: #7BC77B;
             box-shadow: 0 4px 0 #7BC77B !important;
             color: white;
         }
+        
+        .btn.correct .zh-trans { color: #E8F5E9; } /* 答對時翻譯變淺白 */
 
-        /* 答錯樣式 */
         .btn.wrong {
             background-color: var(--wrong-red);
             border-color: #FF6B75;
             box-shadow: 0 4px 0 #FF6B75 !important;
             color: white;
         }
+        
+        .btn.wrong .zh-trans { color: #FFEBEE; }
 
         .controls {
             margin-top: 25px;
@@ -172,7 +192,6 @@
             align-items: center;
         }
 
-        /* 按鈕群組 */
         .nav-buttons {
             display: flex;
             gap: 10px;
@@ -192,7 +211,7 @@
         }
 
         .nav-btn.prev {
-            background-color: #FFB7C5; /* 上一題用粉紅色 */
+            background-color: #FFB7C5;
             box-shadow: 0 4px 0 #E598A5;
         }
 
@@ -207,22 +226,12 @@
             transform: none;
         }
 
-        .hide {
-            display: none !important;
-        }
+        .hide { display: none !important; }
 
         .score-display {
             font-size: 1.2rem;
             color: var(--primary-pink);
             font-weight: bold;
-        }
-
-        /* 結算頁面 */
-        .result-box img {
-            max-width: 150px;
-            margin: 20px 0;
-            border-radius: 50%;
-            border: 4px solid var(--primary-pink);
         }
 
         .progress-bar {
@@ -240,7 +249,6 @@
             width: 0%;
             transition: width 0.3s ease;
         }
-
     </style>
 </head>
 <body>
@@ -254,8 +262,8 @@
         <div class="header-decoration">🐻 🐰 🐱</div>
         
         <div id="start-screen">
-            <h1>會計小測驗<br><span style="font-size:0.6em; color:#A0D8EF;">(Chiikawa Style)</span></h1>
-            <p>準備好複習 Chapter 1-9 的重點了嗎？<br>(共 39 題)</p>
+            <h1>會計小測驗<br><span style="font-size:0.6em; color:#A0D8EF;">(中英雙語版)</span></h1>
+            <p>包含 Chapter 1-9 重點<br>(共 39 題)</p>
             <button class="start-btn" onclick="startQuiz()">哇！開始囉！</button>
         </div>
 
@@ -267,8 +275,8 @@
             <div class="question-box">
                 <div id="question-text" class="question-text">題目載入中...</div>
             </div>
-            <div id="answer-buttons" class="options-grid">
-                </div>
+            <div id="answer-buttons" class="options-grid"></div>
+            
             <div class="controls">
                 <span id="question-count" style="font-size: 0.9em; color: #aaa;">1 / 39</span>
                 <div class="nav-buttons">
@@ -294,403 +302,403 @@
     </div>
 
     <script>
-        // 題目資料庫
+        // 題目資料庫 (已加入中英對照)
         const questions = [
             {
-                q: "1) Which of the following is not accomplished by accounting?",
+                q: "1) Which of the following is not accomplished by accounting?<span class='zh-trans'>1) 以下哪項不是會計所完成的功能？</span>",
                 a: [
-                    { text: "A) Identifies business activities.", correct: false },
-                    { text: "B) Records business activities.", correct: false },
-                    { text: "C) Communicates business activities.", correct: false },
-                    { text: "D) Eliminates the need for interpreting financial data.", correct: true },
-                    { text: "E) Helps people make better decisions.", correct: false }
+                    { text: "A) Identifies business activities.<span class='zh-trans'>識別商業活動。</span>", correct: false },
+                    { text: "B) Records business activities.<span class='zh-trans'>記錄商業活動。</span>", correct: false },
+                    { text: "C) Communicates business activities.<span class='zh-trans'>傳達商業活動資訊。</span>", correct: false },
+                    { text: "D) Eliminates the need for interpreting financial data.<span class='zh-trans'>消除解讀財務數據的需求。</span>", correct: true },
+                    { text: "E) Helps people make better decisions.<span class='zh-trans'>幫助人們做出更好的決策。</span>", correct: false }
                 ]
             },
             {
-                q: "2) Which of the following is not true regarding ethics:",
+                q: "2) Which of the following is not true regarding ethics:<span class='zh-trans'>2) 關於道德，以下哪項是不正確的：</span>",
                 a: [
-                    { text: "A) Ethics are beliefs that separate right from wrong.", correct: false },
-                    { text: "B) Good ethics are good business.", correct: false },
-                    { text: "C) Ethics do not affect the operations or outcome of a company.", correct: true },
-                    { text: "D) Accountants face ethical choices as they prepare financial reports.", correct: false },
-                    { text: "E) Ethics are accepted standards of good and bad behavior.", correct: false }
+                    { text: "A) Ethics are beliefs that separate right from wrong.<span class='zh-trans'>道德是區分對錯的信念。</span>", correct: false },
+                    { text: "B) Good ethics are good business.<span class='zh-trans'>良好的道德就是良好的商業。</span>", correct: false },
+                    { text: "C) Ethics do not affect the operations or outcome of a company.<span class='zh-trans'>道德不會影響公司的運作或結果。</span>", correct: true },
+                    { text: "D) Accountants face ethical choices as they prepare financial reports.<span class='zh-trans'>會計師在編制財務報告時面臨道德選擇。</span>", correct: false },
+                    { text: "E) Ethics are accepted standards of good and bad behavior.<span class='zh-trans'>道德是公認的善惡行為標準。</span>", correct: false }
                 ]
             },
             {
-                q: "3) The accounting concept that requires every business to be accounted for separately from other business entities, including its owner or owners is known as the:",
+                q: "3) The accounting concept that requires every business to be accounted for separately from other business entities, including its owner or owners is known as the:<span class='zh-trans'>3) 要求每個企業必須與其他商業實體（包括其所有者）分開核算的會計概念稱為：</span>",
                 a: [
-                    { text: "A) Time-period assumption.", correct: false },
-                    { text: "B) Business entity assumption.", correct: true },
-                    { text: "C) Going-concern assumption.", correct: false },
-                    { text: "D) Revenue recognition principle.", correct: false },
-                    { text: "E) Measurement (Cost) principle.", correct: false }
+                    { text: "A) Time-period assumption.<span class='zh-trans'>時間週期假設。</span>", correct: false },
+                    { text: "B) Business entity assumption.<span class='zh-trans'>企業主體假設。</span>", correct: true },
+                    { text: "C) Going-concern assumption.<span class='zh-trans'>繼續經營假設。</span>", correct: false },
+                    { text: "D) Revenue recognition principle.<span class='zh-trans'>收入確認原則。</span>", correct: false },
+                    { text: "E) Measurement (Cost) principle.<span class='zh-trans'>衡量（成本）原則。</span>", correct: false }
                 ]
             },
             {
-                q: "4) If a company is considering the purchase of a parcel of land... originally acquired for $103,000, currently offered at $186,000, worth $176,000, and finally purchased for $173,000. It should be recorded at:",
+                q: "4) If a company is considering the purchase of a parcel of land... originally acquired for $103,000, currently offered at $186,000, worth $176,000, and finally purchased for $173,000. It should be recorded at:<span class='zh-trans'>4) 如果一家公司考慮購買一塊土地...原價$103,000，現開價$186,000，估值$176,000，最終以$173,000購入。應以多少金額入帳？</span>",
                 a: [
                     { text: "A) $113,000", correct: false },
-                    { text: "B) $173,000", correct: true },
+                    { text: "B) $173,000<span class='zh-trans'>（按實際成本入帳）</span>", correct: true },
                     { text: "C) $174,500", correct: false },
                     { text: "D) $176,000", correct: false },
                     { text: "E) $186,000", correct: false }
                 ]
             },
             {
-                q: "5) Increases in equity that result from providing products or services to customers are called:",
+                q: "5) Increases in equity that result from providing products or services to customers are called:<span class='zh-trans'>5) 因向客戶提供產品或服務而導致的權益增加稱為：</span>",
                 a: [
-                    { text: "A) Liabilities.", correct: false },
-                    { text: "B) Revenues.", correct: true },
-                    { text: "C) Financing activities.", correct: false },
-                    { text: "D) Investing activities.", correct: false },
-                    { text: "E) Expenses.", correct: false }
+                    { text: "A) Liabilities.<span class='zh-trans'>負債。</span>", correct: false },
+                    { text: "B) Revenues.<span class='zh-trans'>收入。</span>", correct: true },
+                    { text: "C) Financing activities.<span class='zh-trans'>融資活動。</span>", correct: false },
+                    { text: "D) Investing activities.<span class='zh-trans'>投資活動。</span>", correct: false },
+                    { text: "E) Expenses.<span class='zh-trans'>費用。</span>", correct: false }
                 ]
             },
             {
-                q: "6) An account used to record the owner's investments in a business is called a(n):",
+                q: "6) An account used to record the owner's investments in a business is called a(n):<span class='zh-trans'>6) 用於記錄所有者對企業投資的帳戶稱為：</span>",
                 a: [
-                    { text: "A) Owner Withdrawals account.", correct: false },
-                    { text: "B) Owner Capital account.", correct: true },
-                    { text: "C) Revenue account.", correct: false },
-                    { text: "D) Expense account.", correct: false },
-                    { text: "E) Liability account.", correct: false }
+                    { text: "A) Owner Withdrawals account.<span class='zh-trans'>業主提款帳戶。</span>", correct: false },
+                    { text: "B) Owner Capital account.<span class='zh-trans'>業主資本帳戶。</span>", correct: true },
+                    { text: "C) Revenue account.<span class='zh-trans'>收入帳戶。</span>", correct: false },
+                    { text: "D) Expense account.<span class='zh-trans'>費用帳戶。</span>", correct: false },
+                    { text: "E) Liability account.<span class='zh-trans'>負債帳戶。</span>", correct: false }
                 ]
             },
             {
-                q: "7) Unearned revenues are:",
+                q: "7) Unearned revenues are:<span class='zh-trans'>7) 預收收入（Unearned revenues）是：</span>",
                 a: [
-                    { text: "A) Revenues that have been earned and received in cash.", correct: false },
-                    { text: "B) Revenues that have been earned but not yet collected in cash.", correct: false },
-                    { text: "C) Liabilities recorded when customers pay in advance for products or services.", correct: true },
-                    { text: "D) Recorded as an asset in the accounting records.", correct: false },
-                    { text: "E) Increases to owners' capital.", correct: false }
+                    { text: "A) Revenues that have been earned and received in cash.<span class='zh-trans'>已賺取並已收到現金的收入。</span>", correct: false },
+                    { text: "B) Revenues that have been earned but not yet collected in cash.<span class='zh-trans'>已賺取但尚未收到現金的收入。</span>", correct: false },
+                    { text: "C) Liabilities recorded when customers pay in advance for products or services.<span class='zh-trans'>當客戶預付產品或服務款項時記錄的負債。</span>", correct: true },
+                    { text: "D) Recorded as an asset in the accounting records.<span class='zh-trans'>在會計記錄中記為資產。</span>", correct: false },
+                    { text: "E) Increases to owners' capital.<span class='zh-trans'>業主資本的增加。</span>", correct: false }
                 ]
             },
             {
-                q: "8) A credit:",
+                q: "8) A credit:<span class='zh-trans'>8) 貸方（Credit）：</span>",
                 a: [
-                    { text: "A) Always decreases an account.", correct: false },
-                    { text: "B) Is the right side of a T-account.", correct: true },
-                    { text: "C) Always increases an account.", correct: false },
-                    { text: "D) Is the left side of a T-account.", correct: false },
-                    { text: "E) Always increases asset accounts.", correct: false }
+                    { text: "A) Always decreases an account.<span class='zh-trans'>總是減少帳戶餘額。</span>", correct: false },
+                    { text: "B) Is the right side of a T-account.<span class='zh-trans'>是 T 字帳的右側。</span>", correct: true },
+                    { text: "C) Always increases an account.<span class='zh-trans'>總是增加帳戶餘額。</span>", correct: false },
+                    { text: "D) Is the left side of a T-account.<span class='zh-trans'>是 T 字帳的左側。</span>", correct: false },
+                    { text: "E) Always increases asset accounts.<span class='zh-trans'>總是增加資產帳戶。</span>", correct: false }
                 ]
             },
             {
-                q: "9) First Rentals purchased office supplies on credit. The general journal entry will include a:",
+                q: "9) First Rentals purchased office supplies on credit. The general journal entry will include a:<span class='zh-trans'>9) First Rentals 賒購辦公用品。普通日記帳分錄將包括：</span>",
                 a: [
-                    { text: "A) Debit to Accounts Payable.", correct: false },
-                    { text: "B) Debit to Accounts Receivable.", correct: false },
-                    { text: "C) Credit to Cash.", correct: false },
-                    { text: "D) Credit to Accounts Payable.", correct: true },
-                    { text: "E) Credit to Willow, Capital.", correct: false }
+                    { text: "A) Debit to Accounts Payable.<span class='zh-trans'>借記：應付帳款。</span>", correct: false },
+                    { text: "B) Debit to Accounts Receivable.<span class='zh-trans'>借記：應收帳款。</span>", correct: false },
+                    { text: "C) Credit to Cash.<span class='zh-trans'>貸記：現金。</span>", correct: false },
+                    { text: "D) Credit to Accounts Payable.<span class='zh-trans'>貸記：應付帳款。</span>", correct: true },
+                    { text: "E) Credit to Willow, Capital.<span class='zh-trans'>貸記：Willow 資本。</span>", correct: false }
                 ]
             },
             {
-                q: "10) During Feb, Rubio Services had cash receipts of $7,500 and payments of $8,600. The Feb 28 balance was $1,800. What was the Feb 1 beginning balance?",
+                q: "10) During Feb, Rubio Services had cash receipts of $7,500 and payments of $8,600. The Feb 28 balance was $1,800. What was the Feb 1 beginning balance?<span class='zh-trans'>10) 二月份現金收入 $7,500，支出 $8,600。2月28日餘額為 $1,800。請問2月1日的期初餘額是多少？</span>",
                 a: [
                     { text: "A) $700", correct: false },
                     { text: "B) $1,100", correct: false },
-                    { text: "C) $2,900", correct: true },
+                    { text: "C) $2,900<span class='zh-trans'>(期末 = 期初 + 收入 - 支出)</span>", correct: true },
                     { text: "D) $0", correct: false },
                     { text: "E) $4,300", correct: false }
                 ]
             },
             {
-                q: "11) The principle that requires expenses be recorded in the same period as the revenues that were recognized as a result of those expenses is the:",
+                q: "11) The principle that requires expenses be recorded in the same period as the revenues that were recognized as a result of those expenses is the:<span class='zh-trans'>11) 要求費用必須在與其產生的收入同一期間記錄的原則是：</span>",
                 a: [
-                    { text: "A) Recognition principle.", correct: false },
-                    { text: "B) Cost principle.", correct: false },
-                    { text: "C) Cash basis of accounting.", correct: false },
-                    { text: "D) Expense recognition (Matching) principle.", correct: true },
-                    { text: "E) Time period principle.", correct: false }
+                    { text: "A) Recognition principle.<span class='zh-trans'>確認原則。</span>", correct: false },
+                    { text: "B) Cost principle.<span class='zh-trans'>成本原則。</span>", correct: false },
+                    { text: "C) Cash basis of accounting.<span class='zh-trans'>現金收付制。</span>", correct: false },
+                    { text: "D) Expense recognition (Matching) principle.<span class='zh-trans'>費用確認（配合）原則。</span>", correct: true },
+                    { text: "E) Time period principle.<span class='zh-trans'>會計期間原則。</span>", correct: false }
                 ]
             },
             {
-                q: "12) The system of preparing financial statements based on recording revenues when cash is received and expenses when cash is paid is called:",
+                q: "12) The system of preparing financial statements based on recording revenues when cash is received and expenses when cash is paid is called:<span class='zh-trans'>12) 基於收到現金時記錄收入、支付現金時記錄費用的財務報表編制系統稱為：</span>",
                 a: [
-                    { text: "A) Accrual basis accounting.", correct: false },
-                    { text: "B) Operating cycle accounting.", correct: false },
-                    { text: "C) Cash basis accounting.", correct: true },
-                    { text: "D) Revenue recognition accounting.", correct: false },
-                    { text: "E) Current basis accounting.", correct: false }
+                    { text: "A) Accrual basis accounting.<span class='zh-trans'>權責發生制（應計制）。</span>", correct: false },
+                    { text: "B) Operating cycle accounting.<span class='zh-trans'>營業週期會計。</span>", correct: false },
+                    { text: "C) Cash basis accounting.<span class='zh-trans'>現金收付制。</span>", correct: true },
+                    { text: "D) Revenue recognition accounting.<span class='zh-trans'>收入確認會計。</span>", correct: false },
+                    { text: "E) Current basis accounting.<span class='zh-trans'>流動基礎會計。</span>", correct: false }
                 ]
             },
             {
-                q: "13) Which of the following items does not require an adjusting entry?",
+                q: "13) Which of the following items does not require an adjusting entry?<span class='zh-trans'>13) 以下哪項不需要調整分錄？</span>",
                 a: [
-                    { text: "A) Prepaid expenses.", correct: false },
-                    { text: "B) Depreciation.", correct: false },
-                    { text: "C) Owner investments.", correct: true },
-                    { text: "D) Unearned revenues.", correct: false },
-                    { text: "E) Accrued expenses.", correct: false }
+                    { text: "A) Prepaid expenses.<span class='zh-trans'>預付費用。</span>", correct: false },
+                    { text: "B) Depreciation.<span class='zh-trans'>折舊。</span>", correct: false },
+                    { text: "C) Owner investments.<span class='zh-trans'>業主投資。</span>", correct: true },
+                    { text: "D) Unearned revenues.<span class='zh-trans'>預收收入。</span>", correct: false },
+                    { text: "E) Accrued expenses.<span class='zh-trans'>應計費用。</span>", correct: false }
                 ]
             },
             {
-                q: "14) The expense of allocating the cost of equipment to the periods in which it is used is called:",
+                q: "14) The expense of allocating the cost of equipment to the periods in which it is used is called:<span class='zh-trans'>14) 將設備成本分配到使用期間的費用稱為：</span>",
                 a: [
-                    { text: "A) An accrued expense.", correct: false },
-                    { text: "B) Cash basis accounting.", correct: false },
-                    { text: "C) A deferred revenue.", correct: false },
-                    { text: "D) Depreciation expense.", correct: true },
-                    { text: "E) An accrued asset.", correct: false }
+                    { text: "A) An accrued expense.<span class='zh-trans'>應計費用。</span>", correct: false },
+                    { text: "B) Cash basis accounting.<span class='zh-trans'>現金收付制。</span>", correct: false },
+                    { text: "C) A deferred revenue.<span class='zh-trans'>遞延收入。</span>", correct: false },
+                    { text: "D) Depreciation expense.<span class='zh-trans'>折舊費用。</span>", correct: true },
+                    { text: "E) An accrued asset.<span class='zh-trans'>應計資產。</span>", correct: false }
                 ]
             },
             {
-                q: "15) Revenues and expenses accounts, which are closed at the end of each accounting period, are:",
+                q: "15) Revenues and expenses accounts, which are closed at the end of each accounting period, are:<span class='zh-trans'>15) 在每個會計期間結束時結清的收入和費用帳戶是：</span>",
                 a: [
-                    { text: "A) Contra accounts.", correct: false },
-                    { text: "B) Temporary accounts.", correct: true },
-                    { text: "C) Closing accounts.", correct: false },
-                    { text: "D) Permanent accounts.", correct: false },
-                    { text: "E) Balance sheet accounts.", correct: false }
+                    { text: "A) Contra accounts.<span class='zh-trans'>抵銷帳戶。</span>", correct: false },
+                    { text: "B) Temporary accounts.<span class='zh-trans'>臨時帳戶（虛帳戶）。</span>", correct: true },
+                    { text: "C) Closing accounts.<span class='zh-trans'>結帳帳戶。</span>", correct: false },
+                    { text: "D) Permanent accounts.<span class='zh-trans'>永久帳戶（實帳戶）。</span>", correct: false },
+                    { text: "E) Balance sheet accounts.<span class='zh-trans'>資產負債表帳戶。</span>", correct: false }
                 ]
             },
             {
-                q: "16) Asset and liability accounts are not closed; these accounts are called:",
+                q: "16) Asset and liability accounts are not closed; these accounts are called:<span class='zh-trans'>16) 資產和負債帳戶不會被結清；這些帳戶稱為：</span>",
                 a: [
-                    { text: "A) Nominal accounts.", correct: false },
-                    { text: "B) Temporary accounts.", correct: false },
-                    { text: "C) Permanent accounts.", correct: true },
-                    { text: "D) Contra accounts.", correct: false },
-                    { text: "E) Accrued accounts.", correct: false }
+                    { text: "A) Nominal accounts.<span class='zh-trans'>名義帳戶。</span>", correct: false },
+                    { text: "B) Temporary accounts.<span class='zh-trans'>臨時帳戶。</span>", correct: false },
+                    { text: "C) Permanent accounts.<span class='zh-trans'>永久帳戶（實帳戶）。</span>", correct: true },
+                    { text: "D) Contra accounts.<span class='zh-trans'>抵銷帳戶。</span>", correct: false },
+                    { text: "E) Accrued accounts.<span class='zh-trans'>應計帳戶。</span>", correct: false }
                 ]
             },
             {
-                q: "17) The recurring steps performed each reporting period... starting with analyzing and recording transactions... is referred to as the:",
+                q: "17) The recurring steps performed each reporting period... starting with analyzing and recording transactions... is referred to as the:<span class='zh-trans'>17) 每個報告期間執行的重複步驟...從分析和記錄交易開始...被稱為：</span>",
                 a: [
-                    { text: "A) Accounting period.", correct: false },
-                    { text: "B) Operating cycle.", correct: false },
-                    { text: "C) Accounting cycle.", correct: true },
-                    { text: "D) Closing cycle.", correct: false },
-                    { text: "E) Natural business year.", correct: false }
+                    { text: "A) Accounting period.<span class='zh-trans'>會計期間。</span>", correct: false },
+                    { text: "B) Operating cycle.<span class='zh-trans'>營業週期。</span>", correct: false },
+                    { text: "C) Accounting cycle.<span class='zh-trans'>會計循環。</span>", correct: true },
+                    { text: "D) Closing cycle.<span class='zh-trans'>結帳循環。</span>", correct: false },
+                    { text: "E) Natural business year.<span class='zh-trans'>自然會計年度。</span>", correct: false }
                 ]
             },
             {
-                q: "18) The assets section of a classified balance sheet usually includes the subgroups:",
+                q: "18) The assets section of a classified balance sheet usually includes the subgroups:<span class='zh-trans'>18) 分類資產負債表的資產部分通常包括以下子組：</span>",
                 a: [
-                    { text: "A) Current assets, long-term investments, plant assets, and intangible assets.", correct: true },
-                    { text: "B) Current assets, long-term assets, revenues, and intangible assets.", correct: false },
-                    { text: "C) Current assets, long-term investments, plant assets, and equity.", correct: false },
-                    { text: "D) Current liabilities, long-term investments, plant assets, and intangible assets.", correct: false },
-                    { text: "E) Current assets, liabilities, plant assets, and intangible assets.", correct: false }
+                    { text: "A) Current assets, long-term investments, plant assets, and intangible assets.<span class='zh-trans'>流動資產、長期投資、廠房資產和無形資產。</span>", correct: true },
+                    { text: "B) Current assets, long-term assets, revenues, and intangible assets.<span class='zh-trans'>流動資產、長期資產、收入和無形資產。</span>", correct: false },
+                    { text: "C) Current assets, long-term investments, plant assets, and equity.<span class='zh-trans'>流動資產、長期投資、廠房資產和權益。</span>", correct: false },
+                    { text: "D) Current liabilities, long-term investments...<span class='zh-trans'>流動負債...</span>", correct: false },
+                    { text: "E) Current assets, liabilities...<span class='zh-trans'>流動資產、負債...</span>", correct: false }
                 ]
             },
             {
-                q: "19) Which of the following is classified as a current asset?",
+                q: "19) Which of the following is classified as a current asset?<span class='zh-trans'>19) 以下哪項被歸類為流動資產？</span>",
                 a: [
-                    { text: "A) Equipment.", correct: false },
-                    { text: "B) Buildings.", correct: false },
-                    { text: "C) Unearned revenue.", correct: false },
-                    { text: "D) Accounts receivable.", correct: true },
-                    { text: "E) Land.", correct: false }
+                    { text: "A) Equipment.<span class='zh-trans'>設備。</span>", correct: false },
+                    { text: "B) Buildings.<span class='zh-trans'>建築物。</span>", correct: false },
+                    { text: "C) Unearned revenue.<span class='zh-trans'>預收收入（這是負債）。</span>", correct: false },
+                    { text: "D) Accounts receivable.<span class='zh-trans'>應收帳款。</span>", correct: true },
+                    { text: "E) Land.<span class='zh-trans'>土地。</span>", correct: false }
                 ]
             },
             {
-                q: "20) Cost of goods sold:",
+                q: "20) Cost of goods sold:<span class='zh-trans'>20) 銷貨成本（Cost of goods sold）：</span>",
                 a: [
-                    { text: "A) Is another term for merchandise sales.", correct: false },
-                    { text: "B) Is the term used for the expense of buying and preparing merchandise for sale.", correct: true },
-                    { text: "C) Is another term for revenue.", correct: false },
-                    { text: "D) Is also called gross margin.", correct: false },
-                    { text: "E) Is a term only used by service firms.", correct: false }
+                    { text: "A) Is another term for merchandise sales.<span class='zh-trans'>是商品銷售的另一個術語。</span>", correct: false },
+                    { text: "B) Is the term used for the expense of buying and preparing merchandise for sale.<span class='zh-trans'>是用於購買和準備銷售商品的費用的術語。</span>", correct: true },
+                    { text: "C) Is another term for revenue.<span class='zh-trans'>是收入的另一個術語。</span>", correct: false },
+                    { text: "D) Is also called gross margin.<span class='zh-trans'>也稱為毛利。</span>", correct: false },
+                    { text: "E) Is a term only used by service firms.<span class='zh-trans'>是僅由服務公司使用的術語。</span>", correct: false }
                 ]
             },
             {
-                q: "21) A company has net sales of $752,800 and cost of goods sold of $301,800. Its gross profit equals:",
+                q: "21) A company has net sales of $752,800 and cost of goods sold of $301,800. Its gross profit equals:<span class='zh-trans'>21) 一家公司淨銷售額為 $752,800，銷貨成本為 $301,800。其毛利等於：</span>",
                 a: [
                     { text: "A) $271,000.", correct: false },
                     { text: "B) $752,800.", correct: false },
                     { text: "C) $301,800.", correct: false },
-                    { text: "D) $451,000.", correct: true },
+                    { text: "D) $451,000.<span class='zh-trans'>(752,800 - 301,800)</span>", correct: true },
                     { text: "E) $1,054,600.", correct: false }
                 ]
             },
             {
-                q: "22) Which of the following statements regarding gross profit is false?",
+                q: "22) Which of the following statements regarding gross profit is false?<span class='zh-trans'>22) 關於毛利，以下哪個陳述是錯誤的？</span>",
                 a: [
-                    { text: "A) Gross profit is also called gross margin.", correct: false },
-                    { text: "B) Gross profit less other operating expenses equals income from operations.", correct: false },
-                    { text: "C) Gross profit is calculated on the single-step income statement, not the multi-step income statement.", correct: true },
-                    { text: "D) Gross profit must cover all operating expenses to yield a return for the owner.", correct: false },
-                    { text: "E) Gross profit equals net sales less cost of goods sold.", correct: false }
+                    { text: "A) Gross profit is also called gross margin.<span class='zh-trans'>毛利也稱為毛利率。</span>", correct: false },
+                    { text: "B) Gross profit less other operating expenses equals income from operations.<span class='zh-trans'>毛利減去其他營業費用等於營業利益。</span>", correct: false },
+                    { text: "C) Gross profit is calculated on the single-step income statement, not the multi-step income statement.<span class='zh-trans'>毛利是在單站式損益表中計算的，而不是多站式損益表。</span>", correct: true },
+                    { text: "D) Gross profit must cover all operating expenses to yield a return for the owner.<span class='zh-trans'>毛利必須涵蓋所有營業費用才能為業主產生回報。</span>", correct: false },
+                    { text: "E) Gross profit equals net sales less cost of goods sold.<span class='zh-trans'>毛利等於淨銷售額減去銷貨成本。</span>", correct: false }
                 ]
             },
             {
-                q: "23) The credit terms 2/10, n/30 are interpreted as:",
+                q: "23) The credit terms 2/10, n/30 are interpreted as:<span class='zh-trans'>23) 信用條款 2/10, n/30 解讀為：</span>",
                 a: [
-                    { text: "A) 2% cash discount if the amount is paid within 10 days, or the full balance due in 30 days.", correct: true },
-                    { text: "B) 10% cash discount if the amount is paid within 2 days...", correct: false },
-                    { text: "C) 30% discount if paid within 2 days.", correct: false },
-                    { text: "D) 30% discount if paid within 10 days.", correct: false },
-                    { text: "E) 2% discount if paid within 30 days.", correct: false }
+                    { text: "A) 2% cash discount if the amount is paid within 10 days, or the full balance due in 30 days.<span class='zh-trans'>10天內付款享2%折扣，否則30天內付清全額。</span>", correct: true },
+                    { text: "B) 10% cash discount if the amount is paid within 2 days...<span class='zh-trans'>2天內付款享10%折扣...</span>", correct: false },
+                    { text: "C) 30% discount if paid within 2 days.<span class='zh-trans'>2天內付款享30%折扣。</span>", correct: false },
+                    { text: "D) 30% discount if paid within 10 days.<span class='zh-trans'>10天內付款享30%折扣。</span>", correct: false },
+                    { text: "E) 2% discount if paid within 30 days.<span class='zh-trans'>30天內付款享2%折扣。</span>", correct: false }
                 ]
             },
             {
-                q: "24) Sales less sales discounts, less sales returns and allowances equals:",
+                q: "24) Sales less sales discounts, less sales returns and allowances equals:<span class='zh-trans'>24) 銷售額減去銷售折扣，再減去銷售退回與折讓等於：</span>",
                 a: [
-                    { text: "A) Net purchases.", correct: false },
-                    { text: "B) Cost of goods sold.", correct: false },
-                    { text: "C) Net sales.", correct: true },
-                    { text: "D) Gross profit.", correct: false },
-                    { text: "E) Net income.", correct: false }
+                    { text: "A) Net purchases.<span class='zh-trans'>淨進貨。</span>", correct: false },
+                    { text: "B) Cost of goods sold.<span class='zh-trans'>銷貨成本。</span>", correct: false },
+                    { text: "C) Net sales.<span class='zh-trans'>銷貨淨額（淨銷售額）。</span>", correct: true },
+                    { text: "D) Gross profit.<span class='zh-trans'>毛利。</span>", correct: false },
+                    { text: "E) Net income.<span class='zh-trans'>淨利。</span>", correct: false }
                 ]
             },
             {
-                q: "25) Which of the following statements regarding inventory shrinkage is false?",
+                q: "25) Which of the following statements regarding inventory shrinkage is false?<span class='zh-trans'>25) 關於存貨盤虧（縮水），以下哪個陳述是錯誤的？</span>",
                 a: [
-                    { text: "A) Inventory shrinkage refers to the loss of inventory.", correct: false },
-                    { text: "B) Inventory shrinkage is determined by comparing a physical count... with recorded inventory.", correct: false },
-                    { text: "C) Inventory shrinkage is recognized by crediting an operating expense.", correct: true },
-                    { text: "D) Inventory shrinkage is recognized by debiting Cost of Goods Sold.", correct: false },
-                    { text: "E) Inventory shrinkage can be caused by theft or deterioration.", correct: false }
+                    { text: "A) Inventory shrinkage refers to the loss of inventory.<span class='zh-trans'>存貨盤虧是指存貨的損失。</span>", correct: false },
+                    { text: "B) Inventory shrinkage is determined by comparing a physical count... with recorded inventory.<span class='zh-trans'>盤虧是通過比較實地盤點數與帳面記錄數確定的。</span>", correct: false },
+                    { text: "C) Inventory shrinkage is recognized by crediting an operating expense.<span class='zh-trans'>盤虧是通過貸記營業費用來確認的（錯誤：通常是貸記存貨，借記銷貨成本）。</span>", correct: true },
+                    { text: "D) Inventory shrinkage is recognized by debiting Cost of Goods Sold.<span class='zh-trans'>盤虧是通過借記銷貨成本來確認的。</span>", correct: false },
+                    { text: "E) Inventory shrinkage can be caused by theft or deterioration.<span class='zh-trans'>盤虧可能由盜竊或變質引起。</span>", correct: false }
                 ]
             },
             {
-                q: "26) Which of the following costs is not included in the Merchandise Inventory account?",
+                q: "26) Which of the following costs is not included in the Merchandise Inventory account?<span class='zh-trans'>26) 以下哪項成本不包含在商品存貨帳戶中？</span>",
                 a: [
-                    { text: "A) Invoice price minus any discount.", correct: false },
-                    { text: "B) Import duties.", correct: false },
-                    { text: "C) Storage.", correct: false },
-                    { text: "D) Insurance.", correct: false },
-                    { text: "E) Damaged inventory that cannot be sold.", correct: true }
+                    { text: "A) Invoice price minus any discount.<span class='zh-trans'>發票價格減去折扣。</span>", correct: false },
+                    { text: "B) Import duties.<span class='zh-trans'>進口關稅。</span>", correct: false },
+                    { text: "C) Storage.<span class='zh-trans'>倉儲費。</span>", correct: false },
+                    { text: "D) Insurance.<span class='zh-trans'>保險費。</span>", correct: false },
+                    { text: "E) Damaged inventory that cannot be sold.<span class='zh-trans'>無法出售的損壞存貨。</span>", correct: true }
                 ]
             },
             {
-                q: "27) Regardless of the inventory costing system used, cost of goods available for sale must be allocated... between:",
+                q: "27) Regardless of the inventory costing system used, cost of goods available for sale must be allocated... between:<span class='zh-trans'>27) 無論使用何種存貨成本計算系統，可供銷售商品成本必須在...之間分配：</span>",
                 a: [
-                    { text: "A) beginning inventory and net purchases.", correct: false },
-                    { text: "B) ending inventory and beginning inventory.", correct: false },
-                    { text: "C) net purchases during the period and ending inventory.", correct: false },
-                    { text: "D) ending inventory and cost of goods sold.", correct: true },
-                    { text: "E) beginning inventory and cost of goods sold.", correct: false }
+                    { text: "A) beginning inventory and net purchases.<span class='zh-trans'>期初存貨和淨進貨。</span>", correct: false },
+                    { text: "B) ending inventory and beginning inventory.<span class='zh-trans'>期末存貨和期初存貨。</span>", correct: false },
+                    { text: "C) net purchases during the period and ending inventory.<span class='zh-trans'>本期淨進貨和期末存貨。</span>", correct: false },
+                    { text: "D) ending inventory and cost of goods sold.<span class='zh-trans'>期末存貨和銷貨成本。</span>", correct: true },
+                    { text: "E) beginning inventory and cost of goods sold.<span class='zh-trans'>期初存貨和銷貨成本。</span>", correct: false }
                 ]
             },
             {
-                q: "28) When purchase costs regularly rise, the inventory costing method that yields the highest reported net income is:",
+                q: "28) When purchase costs regularly rise, the inventory costing method that yields the highest reported net income is:<span class='zh-trans'>28) 當採購成本持續上升時，能產生最高報告淨利的存貨計價方法是：</span>",
                 a: [
-                    { text: "A) Specific identification method.", correct: false },
-                    { text: "B) Average cost method.", correct: false },
-                    { text: "C) Weighted-average method.", correct: false },
-                    { text: "D) FIFO method.", correct: true },
-                    { text: "E) LIFO method.", correct: false }
+                    { text: "A) Specific identification method.<span class='zh-trans'>個別認定法。</span>", correct: false },
+                    { text: "B) Average cost method.<span class='zh-trans'>平均成本法。</span>", correct: false },
+                    { text: "C) Weighted-average method.<span class='zh-trans'>加權平均法。</span>", correct: false },
+                    { text: "D) FIFO method.<span class='zh-trans'>先進先出法 (FIFO)。</span>", correct: true },
+                    { text: "E) LIFO method.<span class='zh-trans'>後進先出法 (LIFO)。</span>", correct: false }
                 ]
             },
             {
-                q: "29) Compute lower of cost or market. Phones (Qty 1000, Cost $300, Mkt $280) and Tablets (Qty 1100, Cost $350, Mkt $375).",
+                q: "29) Compute lower of cost or market. Phones (Qty 1000, Cost $300, Mkt $280) and Tablets (Qty 1100, Cost $350, Mkt $375).<span class='zh-trans'>29) 計算成本與市價孰低法。手機（量1000，成本$300，市價$280）和平板（量1100，成本$350，市價$375）。</span>",
                 a: [
                     { text: "A) $685,000.", correct: false },
-                    { text: "B) $665,000.", correct: true },
+                    { text: "B) $665,000.<span class='zh-trans'>(1000*280 + 1100*350)</span>", correct: true },
                     { text: "C) $692,500.", correct: false },
                     { text: "D) $300,000.", correct: false },
                     { text: "E) $385,000.", correct: false }
                 ]
             },
             {
-                q: "30) Cash equivalents:",
+                q: "30) Cash equivalents:<span class='zh-trans'>30) 約當現金（Cash equivalents）：</span>",
                 a: [
-                    { text: "A) Include accounts receivable.", correct: false },
-                    { text: "B) Include accounts payable.", correct: false },
-                    { text: "C) Are readily convertible to a known cash amount.", correct: true },
-                    { text: "D) Include long-term investments.", correct: false },
-                    { text: "E) Include investments due in twenty months.", correct: false }
+                    { text: "A) Include accounts receivable.<span class='zh-trans'>包括應收帳款。</span>", correct: false },
+                    { text: "B) Include accounts payable.<span class='zh-trans'>包括應付帳款。</span>", correct: false },
+                    { text: "C) Are readily convertible to a known cash amount.<span class='zh-trans'>可隨時轉換為已知金額的現金。</span>", correct: true },
+                    { text: "D) Include long-term investments.<span class='zh-trans'>包括長期投資。</span>", correct: false },
+                    { text: "E) Include investments due in twenty months.<span class='zh-trans'>包括20個月後到期的投資。</span>", correct: false }
                 ]
             },
             {
-                q: "31) Which of the following is not included on a bank statement?",
+                q: "31) Which of the following is not included on a bank statement?<span class='zh-trans'>31) 銀行對帳單不包括以下哪項？</span>",
                 a: [
-                    { text: "A) End-of-period account balance.", correct: false },
-                    { text: "B) Deposits and other increases to the account.", correct: false },
-                    { text: "C) List of outstanding checks and deposits in transit that are currently unprocessed.", correct: true },
-                    { text: "D) Beginning-of-period account balance.", correct: false },
-                    { text: "E) Withdrawals and other decreases to the account.", correct: false }
+                    { text: "A) End-of-period account balance.<span class='zh-trans'>期末帳戶餘額。</span>", correct: false },
+                    { text: "B) Deposits and other increases to the account.<span class='zh-trans'>存款及其他帳戶增加額。</span>", correct: false },
+                    { text: "C) List of outstanding checks and deposits in transit that are currently unprocessed.<span class='zh-trans'>目前尚未處理的未兌現支票和在途存款清單。</span>", correct: true },
+                    { text: "D) Beginning-of-period account balance.<span class='zh-trans'>期初帳戶餘額。</span>", correct: false },
+                    { text: "E) Withdrawals and other decreases to the account.<span class='zh-trans'>提款及其他帳戶減少額。</span>", correct: false }
                 ]
             },
             {
-                q: "32) The entry to establish a petty cash fund includes:",
+                q: "32) The entry to establish a petty cash fund includes:<span class='zh-trans'>32) 設立零用金基金的分錄包括：</span>",
                 a: [
-                    { text: "A) A debit to Cash and a credit to Petty Cash.", correct: false },
-                    { text: "B) A debit to Cash and a credit to Cash Over and Short.", correct: false },
-                    { text: "C) A debit to Petty Cash and a credit to Cash.", correct: true },
-                    { text: "D) A debit to Petty Cash and a credit to Accounts Receivable.", correct: false },
-                    { text: "E) A debit to Cash and a credit to Petty Cash Over and Short.", correct: false }
+                    { text: "A) A debit to Cash and a credit to Petty Cash.<span class='zh-trans'>借記現金，貸記零用金。</span>", correct: false },
+                    { text: "B) A debit to Cash and a credit to Cash Over and Short.<span class='zh-trans'>借記現金，貸記現金溢缺。</span>", correct: false },
+                    { text: "C) A debit to Petty Cash and a credit to Cash.<span class='zh-trans'>借記零用金，貸記現金。</span>", correct: true },
+                    { text: "D) A debit to Petty Cash and a credit to Accounts Receivable.<span class='zh-trans'>借記零用金，貸記應收帳款。</span>", correct: false },
+                    { text: "E) A debit to Cash and a credit to Petty Cash Over and Short.<span class='zh-trans'>借記現金，貸記零用金溢缺。</span>", correct: false }
                 ]
             },
             {
-                q: "33) An income statement account that is used to record cash overages and cash shortages arising from petty cash transactions... is titled:",
+                q: "33) An income statement account that is used to record cash overages and cash shortages arising from petty cash transactions... is titled:<span class='zh-trans'>33) 用於記錄零用金交易產生的現金盈餘和短缺的損益表帳戶名稱為：</span>",
                 a: [
-                    { text: "A) Cash Lost.", correct: false },
-                    { text: "B) Bank Reconciliation.", correct: false },
-                    { text: "C) Petty Cash.", correct: false },
-                    { text: "D) Cash Over and Short.", correct: true },
-                    { text: "E) Cash Receivable.", correct: false }
+                    { text: "A) Cash Lost.<span class='zh-trans'>現金損失。</span>", correct: false },
+                    { text: "B) Bank Reconciliation.<span class='zh-trans'>銀行調節表。</span>", correct: false },
+                    { text: "C) Petty Cash.<span class='zh-trans'>零用金。</span>", correct: false },
+                    { text: "D) Cash Over and Short.<span class='zh-trans'>現金溢缺。</span>", correct: true },
+                    { text: "E) Cash Receivable.<span class='zh-trans'>應收現金。</span>", correct: false }
                 ]
             },
             {
-                q: "34) The custodian of a $450 petty cash fund discovers the fund has $65 in coins and $382 in receipts. The entry to replenish will include:",
+                q: "34) The custodian of a $450 petty cash fund discovers the fund has $65 in coins and $382 in receipts. The entry to replenish will include:<span class='zh-trans'>34) $450零用金的保管人發現現有$65硬幣和$382收據。補充零用金的分錄將包括：</span>",
                 a: [
-                    { text: "A) A debit to Cash for $382.", correct: false },
-                    { text: "B) A credit to Cash Over and Short for $3.", correct: false },
-                    { text: "C) A debit to Petty Cash for $385.", correct: false },
-                    { text: "D) A credit to Cash for $385.", correct: true },
-                    { text: "E) A debit to Cash for $450.", correct: false }
+                    { text: "A) A debit to Cash for $382.<span class='zh-trans'>借記現金 $382。</span>", correct: false },
+                    { text: "B) A credit to Cash Over and Short for $3.<span class='zh-trans'>貸記現金溢缺 $3。</span>", correct: false },
+                    { text: "C) A debit to Petty Cash for $385.<span class='zh-trans'>借記零用金 $385。</span>", correct: false },
+                    { text: "D) A credit to Cash for $385.<span class='zh-trans'>貸記現金 $385 ($450-$65=$385)。</span>", correct: true },
+                    { text: "E) A debit to Cash for $450.<span class='zh-trans'>借記現金 $450。</span>", correct: false }
                 ]
             },
             {
-                q: "35) A company pledges its receivables so it can:",
+                q: "35) A company pledges its receivables so it can:<span class='zh-trans'>35) 公司質押其應收帳款是為了：</span>",
                 a: [
-                    { text: "A) Collect a pledge fee.", correct: false },
-                    { text: "B) Borrow money.", correct: true },
-                    { text: "C) Charge a factoring fee.", correct: false },
-                    { text: "D) Increase sales.", correct: false },
-                    { text: "E) Recognize a sale.", correct: false }
+                    { text: "A) Collect a pledge fee.<span class='zh-trans'>收取質押費。</span>", correct: false },
+                    { text: "B) Borrow money.<span class='zh-trans'>借款。</span>", correct: true },
+                    { text: "C) Charge a factoring fee.<span class='zh-trans'>收取保理費。</span>", correct: false },
+                    { text: "D) Increase sales.<span class='zh-trans'>增加銷售額。</span>", correct: false },
+                    { text: "E) Recognize a sale.<span class='zh-trans'>確認銷售。</span>", correct: false }
                 ]
             },
             {
-                q: "36) A promissory note:",
+                q: "36) A promissory note:<span class='zh-trans'>36) 本票（Promissory note）：</span>",
                 a: [
-                    { text: "A) Is a short-term investment for the maker.", correct: false },
-                    { text: "B) Is a written promise to pay a specified amount, usually with interest, either on demand or at a stated future date.", correct: true },
-                    { text: "C) Is a liability to the payee.", correct: false },
-                    { text: "D) Is created when a company sells its receivables to a finance company.", correct: false },
-                    { text: "E) Cannot be used in payment of an account receivable.", correct: false }
+                    { text: "A) Is a short-term investment for the maker.<span class='zh-trans'>對發票人來說是短期投資。</span>", correct: false },
+                    { text: "B) Is a written promise to pay a specified amount, usually with interest, either on demand or at a stated future date.<span class='zh-trans'>書面承諾在即期或指定的未來日期支付特定金額（通常含利息）。</span>", correct: true },
+                    { text: "C) Is a liability to the payee.<span class='zh-trans'>對受款人來說是負債。</span>", correct: false },
+                    { text: "D) Is created when a company sells its receivables to a finance company.<span class='zh-trans'>當公司向財務公司出售應收帳款時產生。</span>", correct: false },
+                    { text: "E) Cannot be used in payment of an account receivable.<span class='zh-trans'>不能用於支付應收帳款。</span>", correct: false }
                 ]
             },
             {
-                q: "37) A 90-day note issued on April 10 matures on:",
+                q: "37) A 90-day note issued on April 10 matures on:<span class='zh-trans'>37) 4月10日發行的90天期票據到期日為：</span>",
                 a: [
-                    { text: "A) July 9.", correct: true },
-                    { text: "B) July 10.", correct: false },
-                    { text: "C) July 11.", correct: false },
-                    { text: "D) July 12.", correct: false },
-                    { text: "E) July 13.", correct: false }
+                    { text: "A) July 9.<span class='zh-trans'>7月9日。(4月剩20天+5月31天+6月30天+7月9天 = 90)</span>", correct: true },
+                    { text: "B) July 10.<span class='zh-trans'>7月10日。</span>", correct: false },
+                    { text: "C) July 11.<span class='zh-trans'>7月11日。</span>", correct: false },
+                    { text: "D) July 12.<span class='zh-trans'>7月12日。</span>", correct: false },
+                    { text: "E) July 13.<span class='zh-trans'>7月13日。</span>", correct: false }
                 ]
             },
             {
-                q: "38) A company receives a 6%, 90-day note for $6,000. The total interest due on the maturity date is (Use 360 days):",
+                q: "38) A company receives a 6%, 90-day note for $6,000. The total interest due on the maturity date is (Use 360 days):<span class='zh-trans'>38) 公司收到一張$6,000、年利率6%、90天期的票據。到期時的總利息為（一年以360天計）：</span>",
                 a: [
                     { text: "A) $360.00.", correct: false },
-                    { text: "B) $90.00.", correct: true },
+                    { text: "B) $90.00.<span class='zh-trans'>(6000 * 0.06 * 90/360)</span>", correct: true },
                     { text: "C) $180.00.", correct: false },
                     { text: "D) $210.00.", correct: false },
                     { text: "E) $120.00.", correct: false }
                 ]
             },
             {
-                q: "39) On October 12... account receivable was uncollectible... Assuming the direct write-off method is used... what effect will this have on net income and total assets?",
+                q: "39) On October 12... account receivable was uncollectible... Assuming the direct write-off method is used... what effect will this have on net income and total assets?<span class='zh-trans'>39) 10月12日...應收帳款無法收回...假設使用直接沖銷法...這將對淨利和總資產產生什麼影響？</span>",
                 a: [
-                    { text: "A) Decrease in net income; no effect on total assets.", correct: false },
-                    { text: "B) No effect on net income; no effect on total assets.", correct: false },
-                    { text: "C) Decrease in net income; decrease in total assets.", correct: true },
-                    { text: "D) Increase in net income; no effect on total assets.", correct: false },
-                    { text: "E) No effect on net income; decrease in total assets.", correct: false }
+                    { text: "A) Decrease in net income; no effect on total assets.<span class='zh-trans'>淨利減少；對總資產無影響。</span>", correct: false },
+                    { text: "B) No effect on net income; no effect on total assets.<span class='zh-trans'>對淨利無影響；對總資產無影響。</span>", correct: false },
+                    { text: "C) Decrease in net income; decrease in total assets.<span class='zh-trans'>淨利減少（因認列壞帳費用）；總資產減少（應收帳款減少）。</span>", correct: true },
+                    { text: "D) Increase in net income; no effect on total assets.<span class='zh-trans'>淨利增加；對總資產無影響。</span>", correct: false },
+                    { text: "E) No effect on net income; decrease in total assets.<span class='zh-trans'>對淨利無影響；總資產減少。</span>", correct: false }
                 ]
             }
         ];
 
         let currentQuestionIndex = 0;
         let score = 0;
-        let userAnswers = []; // 用來儲存每一題的回答狀態 {selectedIndex: number, isCorrect: boolean}
+        let userAnswers = [];
         
         // 計時器變數
         let timerInterval;
@@ -717,7 +725,7 @@
             topBar.classList.remove('hide');
             
             currentQuestionIndex = 0;
-            userAnswers = new Array(questions.length).fill(null); // 重置答案紀錄
+            userAnswers = new Array(questions.length).fill(null);
             updateScore();
             
             startTimer();
@@ -764,26 +772,23 @@
         function showQuestion() {
             resetState();
             let question = questions[currentQuestionIndex];
-            questionText.innerText = question.q;
+            questionText.innerHTML = question.q; // 改用 innerHTML 以支援 HTML 標籤
             questionCountSpan.innerText = `${currentQuestionIndex + 1} / ${questions.length}`;
             
-            // Update progress bar
             let progress = ((currentQuestionIndex) / questions.length) * 100;
             progressFill.style.width = `${progress}%`;
 
-            // 檢查這一題是否已經回答過
             const savedAnswer = userAnswers[currentQuestionIndex];
 
             question.a.forEach((answer, index) => {
                 const button = document.createElement('button');
-                button.innerText = answer.text;
+                button.innerHTML = answer.text; // 改用 innerHTML
                 button.classList.add('btn');
-                button.dataset.index = index; // 儲存 index
+                button.dataset.index = index;
                 if (answer.correct) {
                     button.dataset.correct = "true";
                 }
 
-                // 如果已經回答過，恢復狀態
                 if (savedAnswer !== null) {
                     button.disabled = true;
                     if (answer.correct) {
@@ -793,18 +798,15 @@
                         button.classList.add('wrong');
                     }
                 } else {
-                    // 沒回答過，加入點擊事件
                     button.addEventListener('click', selectAnswer);
                 }
                 
                 answerButtons.appendChild(button);
             });
 
-            // 按鈕狀態控制
             prevBtn.disabled = (currentQuestionIndex === 0);
             
             if (savedAnswer !== null) {
-                // 如果已回答，顯示下一題按鈕 (如果是最後一題則顯示結算)
                 nextBtn.innerText = currentQuestionIndex === questions.length - 1 ? "看結果 ➜" : "下一題 ➜";
                 nextBtn.disabled = false;
                 nextBtn.classList.remove('hide');
@@ -821,24 +823,22 @@
         }
 
         function selectAnswer(e) {
-            const selectedBtn = e.target;
+            // 因為裡面有 span 標籤，點擊時目標可能是 span，需向上找到 button
+            const selectedBtn = e.target.closest('button');
             const isCorrect = selectedBtn.dataset.correct === "true";
             const selectedIndex = parseInt(selectedBtn.dataset.index);
 
-            // 儲存答案
             userAnswers[currentQuestionIndex] = {
                 selectedIndex: selectedIndex,
                 isCorrect: isCorrect
             };
 
-            // 顯示顏色
             if (isCorrect) {
                 selectedBtn.classList.add('correct');
             } else {
                 selectedBtn.classList.add('wrong');
             }
 
-            // 鎖定所有按鈕並顯示正確答案
             Array.from(answerButtons.children).forEach(button => {
                 if (button.dataset.correct === "true") {
                     button.classList.add('correct');
@@ -846,7 +846,7 @@
                 button.disabled = true;
             });
 
-            updateScore(); // 更新分數顯示
+            updateScore();
 
             nextBtn.innerText = currentQuestionIndex === questions.length - 1 ? "看結果 ➜" : "下一題 ➜";
             nextBtn.classList.remove('hide');
@@ -854,7 +854,6 @@
         }
 
         function updateScore() {
-            // 計算 userAnswers 陣列中 isCorrect 為 true 的數量
             score = userAnswers.filter(ans => ans && ans.isCorrect).length;
             currentScoreSpan.innerText = score;
         }
@@ -878,7 +877,7 @@
         function showResults() {
             stopTimer();
             quizScreen.classList.add('hide');
-            topBar.classList.add('hide'); // 隱藏頂部欄
+            topBar.classList.add('hide');
             resultScreen.classList.remove('hide');
             
             const finalScoreText = document.getElementById('final-score-text');
@@ -886,7 +885,7 @@
             const finalTime = document.getElementById('final-time');
             
             finalScoreText.innerText = `${score} / ${questions.length}`;
-            finalTime.innerText = timerText.innerText; // 顯示最終時間
+            finalTime.innerText = timerText.innerText;
             
             let percentage = (score / questions.length) * 100;
             
