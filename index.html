@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會計小測驗 - Chiikawa Ver.</title>
+    <style>
+        /* 吉伊卡哇風格配色與字體 */
+        :root {
+            --primary-pink: #FFB7C5;
+            --soft-white: #FFF9FA;
+            --text-color: #5D5255;
+            --accent-blue: #A0D8EF;
+            --correct-green: #98E298;
+            --wrong-red: #FF9AA2;
+            --button-shadow: #E598A5;
+        }
+
+        body {
+            font-family: "Varela Round", "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #FFF0F5;
+            background-image: radial-gradient(#FFB7C5 15%, transparent 16%), radial-gradient(#A0D8EF 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--soft-white);
+            width: 100%;
+            max-width: 600px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(255, 183, 197, 0.6);
+            padding: 30px;
+            text-align: center;
+            border: 5px solid white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 頂部可愛裝飾 */
+        .header-decoration {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #FF8BA0;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 0px white;
+        }
+
+        .question-box {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 3px solid var(--primary-pink);
+            box-shadow: inset 0 0 10px rgba(255, 183, 197, 0.2);
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: white;
+            border: 2px solid var(--primary-pink);
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 0 var(--button-shadow);
+            position: relative;
+            text-align: left;
+        }
+
+        .btn:hover:not([disabled]) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--button-shadow);
+            background-color: #FFF5F7;
+        }
+
+        .btn:active:not([disabled]) {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 var(--button-shadow);
+        }
+
+        .btn.correct {
+            background-color: var(--correct-green);
+            border-color: #7BC77B;
+            box-shadow: 0 4px 0 #7BC77B;
+            color: white;
+        }
+
+        .btn.wrong {
+            background-color: var(--wrong-red);
+            border-color: #FF6B75;
+            box-shadow: 0 4px 0 #FF6B75;
+            color: white;
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .next-btn, .start-btn, .restart-btn {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #7AB8D0;
+            font-weight: bold;
+        }
+
+        .next-btn:hover, .start-btn:hover, .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .score-display {
+            font-size: 1.2rem;
+            color: var(--primary-pink);
+            font-weight: bold;
+        }
+
+        /* 結算頁面 */
+        .result-box img {
+            max-width: 150px;
+            margin: 20px 0;
+            border-radius: 50%;
+            border: 4px solid var(--primary-pink);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #EEE;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-blue);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-decoration">🐻 🐰 🐱</div>
+        
+        <div id="start-screen">
+            <h1>會計小測驗<br><span style="font-size:0.6em; color:#A0D8EF;">(Chiikawa Style)</span></h1>
+            <p>準備好複習 Chapter 1-9 的重點了嗎？<br>(共 39 題)</p>
+            <button class="start-btn" onclick="startQuiz()">哇！開始囉！</button>
+        </div>
+
+        <div id="quiz-screen" class="hide">
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div class="score-display">
+                Score: <span id="current-score">0</span>
+            </div>
+            <div class="question-box">
+                <div id="question-text" class="question-text">題目載入中...</div>
+            </div>
+            <div id="answer-buttons" class="options-grid">
+                </div>
+            <div class="controls">
+                <span id="question-count" style="font-size: 0.9em; color: #aaa;">1 / 39</span>
+                <button id="next-btn" class="next-btn hide" onclick="nextQuestion()">下一題 ➜</button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hide">
+            <h1>測驗完成！</h1>
+            <div style="font-size: 4rem;">🎉</div>
+            <h2 id="final-score-text"></h2>
+            <p id="result-message"></p>
+            <button class="restart-btn" onclick="restartQuiz()">再玩一次 ↻</button>
+        </div>
+    </div>
+
+    <script>
+        // 題目資料庫 (根據提供的PDF整理)
+        const questions = [
+            {
+                q: "1) Which of the following is not accomplished by accounting?",
+                a: [
+                    { text: "A) Identifies business activities.", correct: false },
+                    { text: "B) Records business activities.", correct: false },
+                    { text: "C) Communicates business activities.", correct: false },
+                    { text: "D) Eliminates the need for interpreting financial data.", correct: true },
+                    { text: "E) Helps people make better decisions.", correct: false }
+                ]
+            },
+            {
+                q: "2) Which of the following is not true regarding ethics:",
+                a: [
+                    { text: "A) Ethics are beliefs that separate right from wrong.", correct: false },
+                    { text: "B) Good ethics are good business.", correct: false },
+                    { text: "C) Ethics do not affect the operations or outcome of a company.", correct: true },
+                    { text: "D) Accountants face ethical choices as they prepare financial reports.", correct: false },
+                    { text: "E) Ethics are accepted standards of good and bad behavior.", correct: false }
+                ]
+            },
+            {
+                q: "3) The accounting concept that requires every business to be accounted for separately from other business entities, including its owner or owners is known as the:",
+                a: [
+                    { text: "A) Time-period assumption.", correct: false },
+                    { text: "B) Business entity assumption.", correct: true },
+                    { text: "C) Going-concern assumption.", correct: false },
+                    { text: "D) Revenue recognition principle.", correct: false },
+                    { text: "E) Measurement (Cost) principle.", correct: false }
+                ]
+            },
+            {
+                q: "4) If a company is considering the purchase of a parcel of land... originally acquired for $103,000, currently offered at $186,000, worth $176,000, and finally purchased for $173,000. It should be recorded at:",
+                a: [
+                    { text: "A) $113,000", correct: false },
+                    { text: "B) $173,000", correct: true },
+                    { text: "C) $174,500", correct: false },
+                    { text: "D) $176,000", correct: false },
+                    { text: "E) $186,000", correct: false }
+                ]
+            },
+            {
+                q: "5) Increases in equity that result from providing products or services to customers are called:",
+                a: [
+                    { text: "A) Liabilities.", correct: false },
+                    { text: "B) Revenues.", correct: true },
+                    { text: "C) Financing activities.", correct: false },
+                    { text: "D) Investing activities.", correct: false },
+                    { text: "E) Expenses.", correct: false }
+                ]
+            },
+            {
+                q: "6) An account used to record the owner's investments in a business is called a(n):",
+                a: [
+                    { text: "A) Owner Withdrawals account.", correct: false },
+                    { text: "B) Owner Capital account.", correct: true },
+                    { text: "C) Revenue account.", correct: false },
+                    { text: "D) Expense account.", correct: false },
+                    { text: "E) Liability account.", correct: false }
+                ]
+            },
+            {
+                q: "7) Unearned revenues are:",
+                a: [
+                    { text: "A) Revenues that have been earned and received in cash.", correct: false },
+                    { text: "B) Revenues that have been earned but not yet collected in cash.", correct: false },
+                    { text: "C) Liabilities recorded when customers pay in advance for products or services.", correct: true },
+                    { text: "D) Recorded as an asset in the accounting records.", correct: false },
+                    { text: "E) Increases to owners' capital.", correct: false }
+                ]
+            },
+            {
+                q: "8) A credit:",
+                a: [
+                    { text: "A) Always decreases an account.", correct: false },
+                    { text: "B) Is the right side of a T-account.", correct: true },
+                    { text: "C) Always increases an account.", correct: false },
+                    { text: "D) Is the left side of a T-account.", correct: false },
+                    { text: "E) Always increases asset accounts.", correct: false }
+                ]
+            },
+            {
+                q: "9) First Rentals purchased office supplies on credit. The general journal entry will include a:",
+                a: [
+                    { text: "A) Debit to Accounts Payable.", correct: false },
+                    { text: "B) Debit to Accounts Receivable.", correct: false },
+                    { text: "C) Credit to Cash.", correct: false },
+                    { text: "D) Credit to Accounts Payable.", correct: true },
+                    { text: "E) Credit to Willow, Capital.", correct: false }
+                ]
+            },
+            {
+                q: "10) During Feb, Rubio Services had cash receipts of $7,500 and payments of $8,600. The Feb 28 balance was $1,800. What was the Feb 1 beginning balance?",
+                a: [
+                    { text: "A) $700", correct: false },
+                    { text: "B) $1,100", correct: false },
+                    { text: "C) $2,900", correct: true },
+                    { text: "D) $0", correct: false },
+                    { text: "E) $4,300", correct: false }
+                ]
+            },
+            {
+                q: "11) The principle that requires expenses be recorded in the same period as the revenues that were recognized as a result of those expenses is the:",
+                a: [
+                    { text: "A) Recognition principle.", correct: false },
+                    { text: "B) Cost principle.", correct: false },
+                    { text: "C) Cash basis of accounting.", correct: false },
+                    { text: "D) Expense recognition (Matching) principle.", correct: true },
+                    { text: "E) Time period principle.", correct: false }
+                ]
+            },
+            {
+                q: "12) The system of preparing financial statements based on recording revenues when cash is received and expenses when cash is paid is called:",
+                a: [
+                    { text: "A) Accrual basis accounting.", correct: false },
+                    { text: "B) Operating cycle accounting.", correct: false },
+                    { text: "C) Cash basis accounting.", correct: true },
+                    { text: "D) Revenue recognition accounting.", correct: false },
+                    { text: "E) Current basis accounting.", correct: false }
+                ]
+            },
+            {
+                q: "13) Which of the following items does not require an adjusting entry?",
+                a: [
+                    { text: "A) Prepaid expenses.", correct: false },
+                    { text: "B) Depreciation.", correct: false },
+                    { text: "C) Owner investments.", correct: true },
+                    { text: "D) Unearned revenues.", correct: false },
+                    { text: "E) Accrued expenses.", correct: false }
+                ]
+            },
+            {
+                q: "14) The expense of allocating the cost of equipment to the periods in which it is used is called:",
+                a: [
+                    { text: "A) An accrued expense.", correct: false },
+                    { text: "B) Cash basis accounting.", correct: false },
+                    { text: "C) A deferred revenue.", correct: false },
+                    { text: "D) Depreciation expense.", correct: true },
+                    { text: "E) An accrued asset.", correct: false }
+                ]
+            },
+            {
+                q: "15) Revenues and expenses accounts, which are closed at the end of each accounting period, are:",
+                a: [
+                    { text: "A) Contra accounts.", correct: false },
+                    { text: "B) Temporary accounts.", correct: true },
+                    { text: "C) Closing accounts.", correct: false },
+                    { text: "D) Permanent accounts.", correct: false },
+                    { text: "E) Balance sheet accounts.", correct: false }
+                ]
+            },
+            {
+                q: "16) Asset and liability accounts are not closed; these accounts are called:",
+                a: [
+                    { text: "A) Nominal accounts.", correct: false },
+                    { text: "B) Temporary accounts.", correct: false },
+                    { text: "C) Permanent accounts.", correct: true },
+                    { text: "D) Contra accounts.", correct: false },
+                    { text: "E) Accrued accounts.", correct: false }
+                ]
+            },
+            {
+                q: "17) The recurring steps performed each reporting period... starting with analyzing and recording transactions... is referred to as the:",
+                a: [
+                    { text: "A) Accounting period.", correct: false },
+                    { text: "B) Operating cycle.", correct: false },
+                    { text: "C) Accounting cycle.", correct: true },
+                    { text: "D) Closing cycle.", correct: false },
+                    { text: "E) Natural business year.", correct: false }
+                ]
+            },
+            {
+                q: "18) The assets section of a classified balance sheet usually includes the subgroups:",
+                a: [
+                    { text: "A) Current assets, long-term investments, plant assets, and intangible assets.", correct: true },
+                    { text: "B) Current assets, long-term assets, revenues, and intangible assets.", correct: false },
+                    { text: "C) Current assets, long-term investments, plant assets, and equity.", correct: false },
+                    { text: "D) Current liabilities, long-term investments, plant assets, and intangible assets.", correct: false },
+                    { text: "E) Current assets, liabilities, plant assets, and intangible assets.", correct: false }
+                ]
+            },
+            {
+                q: "19) Which of the following is classified as a current asset?",
+                a: [
+                    { text: "A) Equipment.", correct: false },
+                    { text: "B) Buildings.", correct: false },
+                    { text: "C) Unearned revenue.", correct: false },
+                    { text: "D) Accounts receivable.", correct: true },
+                    { text: "E) Land.", correct: false }
+                ]
+            },
+            {
+                q: "20) Cost of goods sold:",
+                a: [
+                    { text: "A) Is another term for merchandise sales.", correct: false },
+                    { text: "B) Is the term used for the expense of buying and preparing merchandise for sale.", correct: true },
+                    { text: "C) Is another term for revenue.", correct: false },
+                    { text: "D) Is also called gross margin.", correct: false },
+                    { text: "E) Is a term only used by service firms.", correct: false }
+                ]
+            },
+            {
+                q: "21) A company has net sales of $752,800 and cost of goods sold of $301,800. Its gross profit equals:",
+                a: [
+                    { text: "A) $271,000.", correct: false },
+                    { text: "B) $752,800.", correct: false },
+                    { text: "C) $301,800.", correct: false },
+                    { text: "D) $451,000.", correct: true },
+                    { text: "E) $1,054,600.", correct: false }
+                ]
+            },
+            {
+                q: "22) Which of the following statements regarding gross profit is false?",
+                a: [
+                    { text: "A) Gross profit is also called gross margin.", correct: false },
+                    { text: "B) Gross profit less other operating expenses equals income from operations.", correct: false },
+                    { text: "C) Gross profit is calculated on the single-step income statement, not the multi-step income statement.", correct: true },
+                    { text: "D) Gross profit must cover all operating expenses to yield a return for the owner.", correct: false },
+                    { text: "E) Gross profit equals net sales less cost of goods sold.", correct: false }
+                ]
+            },
+            {
+                q: "23) The credit terms 2/10, n/30 are interpreted as:",
+                a: [
+                    { text: "A) 2% cash discount if the amount is paid within 10 days, or the full balance due in 30 days.", correct: true },
+                    { text: "B) 10% cash discount if the amount is paid within 2 days...", correct: false },
+                    { text: "C) 30% discount if paid within 2 days.", correct: false },
+                    { text: "D) 30% discount if paid within 10 days.", correct: false },
+                    { text: "E) 2% discount if paid within 30 days.", correct: false }
+                ]
+            },
+            {
+                q: "24) Sales less sales discounts, less sales returns and allowances equals:",
+                a: [
+                    { text: "A) Net purchases.", correct: false },
+                    { text: "B) Cost of goods sold.", correct: false },
+                    { text: "C) Net sales.", correct: true },
+                    { text: "D) Gross profit.", correct: false },
+                    { text: "E) Net income.", correct: false }
+                ]
+            },
+            {
+                q: "25) Which of the following statements regarding inventory shrinkage is false?",
+                a: [
+                    { text: "A) Inventory shrinkage refers to the loss of inventory.", correct: false },
+                    { text: "B) Inventory shrinkage is determined by comparing a physical count... with recorded inventory.", correct: false },
+                    { text: "C) Inventory shrinkage is recognized by crediting an operating expense.", correct: true },
+                    { text: "D) Inventory shrinkage is recognized by debiting Cost of Goods Sold.", correct: false },
+                    { text: "E) Inventory shrinkage can be caused by theft or deterioration.", correct: false }
+                ]
+            },
+            {
+                q: "26) Which of the following costs is not included in the Merchandise Inventory account?",
+                a: [
+                    { text: "A) Invoice price minus any discount.", correct: false },
+                    { text: "B) Import duties.", correct: false },
+                    { text: "C) Storage.", correct: false },
+                    { text: "D) Insurance.", correct: false },
+                    { text: "E) Damaged inventory that cannot be sold.", correct: true }
+                ]
+            },
+            {
+                q: "27) Regardless of the inventory costing system used, cost of goods available for sale must be allocated... between:",
+                a: [
+                    { text: "A) beginning inventory and net purchases.", correct: false },
+                    { text: "B) ending inventory and beginning inventory.", correct: false },
+                    { text: "C) net purchases during the period and ending inventory.", correct: false },
+                    { text: "D) ending inventory and cost of goods sold.", correct: true },
+                    { text: "E) beginning inventory and cost of goods sold.", correct: false }
+                ]
+            },
+            {
+                q: "28) When purchase costs regularly rise, the inventory costing method that yields the highest reported net income is:",
+                a: [
+                    { text: "A) Specific identification method.", correct: false },
+                    { text: "B) Average cost method.", correct: false },
+                    { text: "C) Weighted-average method.", correct: false },
+                    { text: "D) FIFO method.", correct: true },
+                    { text: "E) LIFO method.", correct: false }
+                ]
+            },
+            {
+                q: "29) Compute lower of cost or market. Phones (Qty 1000, Cost $300, Mkt $280) and Tablets (Qty 1100, Cost $350, Mkt $375).",
+                a: [
+                    { text: "A) $685,000.", correct: false },
+                    { text: "B) $665,000.", correct: true },
+                    { text: "C) $692,500.", correct: false },
+                    { text: "D) $300,000.", correct: false },
+                    { text: "E) $385,000.", correct: false }
+                ]
+            },
+            {
+                q: "30) Cash equivalents:",
+                a: [
+                    { text: "A) Include accounts receivable.", correct: false },
+                    { text: "B) Include accounts payable.", correct: false },
+                    { text: "C) Are readily convertible to a known cash amount.", correct: true },
+                    { text: "D) Include long-term investments.", correct: false },
+                    { text: "E) Include investments due in twenty months.", correct: false }
+                ]
+            },
+            {
+                q: "31) Which of the following is not included on a bank statement?",
+                a: [
+                    { text: "A) End-of-period account balance.", correct: false },
+                    { text: "B) Deposits and other increases to the account.", correct: false },
+                    { text: "C) List of outstanding checks and deposits in transit that are currently unprocessed.", correct: true },
+                    { text: "D) Beginning-of-period account balance.", correct: false },
+                    { text: "E) Withdrawals and other decreases to the account.", correct: false }
+                ]
+            },
+            {
+                q: "32) The entry to establish a petty cash fund includes:",
+                a: [
+                    { text: "A) A debit to Cash and a credit to Petty Cash.", correct: false },
+                    { text: "B) A debit to Cash and a credit to Cash Over and Short.", correct: false },
+                    { text: "C) A debit to Petty Cash and a credit to Cash.", correct: true },
+                    { text: "D) A debit to Petty Cash and a credit to Accounts Receivable.", correct: false },
+                    { text: "E) A debit to Cash and a credit to Petty Cash Over and Short.", correct: false }
+                ]
+            },
+            {
+                q: "33) An income statement account that is used to record cash overages and cash shortages arising from petty cash transactions... is titled:",
+                a: [
+                    { text: "A) Cash Lost.", correct: false },
+                    { text: "B) Bank Reconciliation.", correct: false },
+                    { text: "C) Petty Cash.", correct: false },
+                    { text: "D) Cash Over and Short.", correct: true },
+                    { text: "E) Cash Receivable.", correct: false }
+                ]
+            },
+            {
+                q: "34) The custodian of a $450 petty cash fund discovers the fund has $65 in coins and $382 in receipts. The entry to replenish will include:",
+                a: [
+                    { text: "A) A debit to Cash for $382.", correct: false },
+                    { text: "B) A credit to Cash Over and Short for $3.", correct: false },
+                    { text: "C) A debit to Petty Cash for $385.", correct: false },
+                    { text: "D) A credit to Cash for $385.", correct: true },
+                    { text: "E) A debit to Cash for $450.", correct: false }
+                ]
+            },
+            {
+                q: "35) A company pledges its receivables so it can:",
+                a: [
+                    { text: "A) Collect a pledge fee.", correct: false },
+                    { text: "B) Borrow money.", correct: true },
+                    { text: "C) Charge a factoring fee.", correct: false },
+                    { text: "D) Increase sales.", correct: false },
+                    { text: "E) Recognize a sale.", correct: false }
+                ]
+            },
+            {
+                q: "36) A promissory note:",
+                a: [
+                    { text: "A) Is a short-term investment for the maker.", correct: false },
+                    { text: "B) Is a written promise to pay a specified amount, usually with interest, either on demand or at a stated future date.", correct: true },
+                    { text: "C) Is a liability to the payee.", correct: false },
+                    { text: "D) Is created when a company sells its receivables to a finance company.", correct: false },
+                    { text: "E) Cannot be used in payment of an account receivable.", correct: false }
+                ]
+            },
+            {
+                q: "37) A 90-day note issued on April 10 matures on:",
+                a: [
+                    { text: "A) July 9.", correct: true },
+                    { text: "B) July 10.", correct: false },
+                    { text: "C) July 11.", correct: false },
+                    { text: "D) July 12.", correct: false },
+                    { text: "E) July 13.", correct: false }
+                ]
+            },
+            {
+                q: "38) A company receives a 6%, 90-day note for $6,000. The total interest due on the maturity date is (Use 360 days):",
+                a: [
+                    { text: "A) $360.00.", correct: false },
+                    { text: "B) $90.00.", correct: true },
+                    { text: "C) $180.00.", correct: false },
+                    { text: "D) $210.00.", correct: false },
+                    { text: "E) $120.00.", correct: false }
+                ]
+            },
+            {
+                q: "39) On October 12... account receivable was uncollectible... Assuming the direct write-off method is used... what effect will this have on net income and total assets?",
+                a: [
+                    { text: "A) Decrease in net income; no effect on total assets.", correct: false },
+                    { text: "B) No effect on net income; no effect on total assets.", correct: false },
+                    { text: "C) Decrease in net income; decrease in total assets.", correct: true },
+                    { text: "D) Increase in net income; no effect on total assets.", correct: false },
+                    { text: "E) No effect on net income; decrease in total assets.", correct: false }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const questionText = document.getElementById('question-text');
+        const answerButtons = document.getElementById('answer-buttons');
+        const nextBtn = document.getElementById('next-btn');
+        const currentScoreSpan = document.getElementById('current-score');
+        const questionCountSpan = document.getElementById('question-count');
+        const progressFill = document.getElementById('progress-fill');
+
+        function startQuiz() {
+            startScreen.classList.add('hide');
+            quizScreen.classList.remove('hide');
+            currentQuestionIndex = 0;
+            score = 0;
+            currentScoreSpan.innerText = score;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            let question = questions[currentQuestionIndex];
+            questionText.innerText = question.q;
+            questionCountSpan.innerText = `${currentQuestionIndex + 1} / ${questions.length}`;
+            
+            // Update progress bar
+            let progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressFill.style.width = `${progress}%`;
+
+            question.a.forEach(answer => {
+                const button = document.createElement('button');
+                button.innerText = answer.text;
+                button.classList.add('btn');
+                if (answer.correct) {
+                    button.dataset.correct = answer.correct;
+                }
+                button.addEventListener('click', selectAnswer);
+                answerButtons.appendChild(button);
+            });
+        }
+
+        function resetState() {
+            nextBtn.classList.add('hide');
+            while (answerButtons.firstChild) {
+                answerButtons.removeChild(answerButtons.firstChild);
+            }
+        }
+
+        function selectAnswer(e) {
+            const selectedBtn = e.target;
+            const isCorrect = selectedBtn.dataset.correct === "true";
+            
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+                score++;
+                currentScoreSpan.innerText = score;
+            } else {
+                selectedBtn.classList.add('wrong');
+            }
+
+            Array.from(answerButtons.children).forEach(button => {
+                if (button.dataset.correct === "true") {
+                    button.classList.add('correct');
+                }
+                button.disabled = true;
+            });
+
+            nextBtn.classList.remove('hide');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.add('hide');
+            resultScreen.classList.remove('hide');
+            
+            const finalScoreText = document.getElementById('final-score-text');
+            const resultMessage = document.getElementById('result-message');
+            
+            finalScoreText.innerText = `${score} / ${questions.length}`;
+            
+            let percentage = (score / questions.length) * 100;
+            
+            if (percentage === 100) {
+                resultMessage.innerText = "太厲害了！你是會計大師！(✨ω✨)";
+            } else if (percentage >= 80) {
+                resultMessage.innerText = "做得很好！差一點點就滿分了！(≧◡≦)";
+            } else if (percentage >= 60) {
+                resultMessage.innerText = "還不錯喔！繼續加油！(◕‿◕)";
+            } else {
+                resultMessage.innerText = "別灰心，多練習幾次就會了！(ง •̀_•́)ง";
+            }
+        }
+
+        function restartQuiz() {
+            resultScreen.classList.add('hide');
+            startScreen.classList.remove('hide');
+        }
+    </script>
+</body>
+</html>
