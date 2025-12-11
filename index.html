@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會計小測驗 - Chiikawa Ver.</title>
+    <title>會計小測驗 - Chiikawa Ver. 2.0</title>
     <style>
         /* 吉伊卡哇風格配色與字體 */
         :root {
@@ -14,6 +14,7 @@
             --correct-green: #98E298;
             --wrong-red: #FF9AA2;
             --button-shadow: #E598A5;
+            --timer-bg: #FFFACD; /* 鵝黃色計時器 */
         }
 
         body {
@@ -44,7 +45,43 @@
             overflow: hidden;
         }
 
-        /* 頂部可愛裝飾 */
+        /* 頂部導航列 (主頁鈕 + 計時器) */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .home-icon-btn {
+            background: none;
+            border: 2px solid var(--accent-blue);
+            border-radius: 15px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--accent-blue);
+            transition: all 0.2s;
+        }
+
+        .home-icon-btn:hover {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .timer-display {
+            background-color: var(--timer-bg);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid #FFE4B5;
+            color: #F4A460;
+            font-family: monospace;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 0 #FFE4B5;
+        }
+
+        /* 頂部裝飾 */
         .header-decoration {
             font-size: 3rem;
             margin-bottom: 10px;
@@ -64,6 +101,7 @@
             margin-bottom: 20px;
             border: 3px solid var(--primary-pink);
             box-shadow: inset 0 0 10px rgba(255, 183, 197, 0.2);
+            position: relative;
         }
 
         .question-text {
@@ -104,17 +142,26 @@
             box-shadow: 0 0 0 var(--button-shadow);
         }
 
+        .btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+            transform: none !important;
+            box-shadow: 0 4px 0 var(--button-shadow) !important;
+        }
+
+        /* 答對樣式 */
         .btn.correct {
             background-color: var(--correct-green);
             border-color: #7BC77B;
-            box-shadow: 0 4px 0 #7BC77B;
+            box-shadow: 0 4px 0 #7BC77B !important;
             color: white;
         }
 
+        /* 答錯樣式 */
         .btn.wrong {
             background-color: var(--wrong-red);
             border-color: #FF6B75;
-            box-shadow: 0 4px 0 #FF6B75;
+            box-shadow: 0 4px 0 #FF6B75 !important;
             color: white;
         }
 
@@ -125,24 +172,43 @@
             align-items: center;
         }
 
-        .next-btn, .start-btn, .restart-btn {
+        /* 按鈕群組 */
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn, .start-btn, .restart-btn {
             background-color: var(--accent-blue);
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 10px 20px;
             border-radius: 25px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
             box-shadow: 0 4px 0 #7AB8D0;
             font-weight: bold;
+            transition: transform 0.1s;
         }
 
-        .next-btn:hover, .start-btn:hover, .restart-btn:hover {
+        .nav-btn.prev {
+            background-color: #FFB7C5; /* 上一題用粉紅色 */
+            box-shadow: 0 4px 0 #E598A5;
+        }
+
+        .nav-btn:hover, .start-btn:hover, .restart-btn:hover {
             transform: scale(1.05);
         }
 
+        .nav-btn:disabled {
+            background-color: #ddd;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .hide {
-            display: none;
+            display: none !important;
         }
 
         .score-display {
@@ -180,6 +246,11 @@
 <body>
 
     <div class="container">
+        <div id="top-bar" class="top-bar hide">
+            <button class="home-icon-btn" onclick="confirmHome()">🏠 主頁</button>
+            <div class="timer-display">⏱️ <span id="timer-text">00:00</span></div>
+        </div>
+
         <div class="header-decoration">🐻 🐰 🐱</div>
         
         <div id="start-screen">
@@ -192,9 +263,7 @@
             <div class="progress-bar">
                 <div id="progress-fill" class="progress-fill"></div>
             </div>
-            <div class="score-display">
-                Score: <span id="current-score">0</span>
-            </div>
+            
             <div class="question-box">
                 <div id="question-text" class="question-text">題目載入中...</div>
             </div>
@@ -202,7 +271,13 @@
                 </div>
             <div class="controls">
                 <span id="question-count" style="font-size: 0.9em; color: #aaa;">1 / 39</span>
-                <button id="next-btn" class="next-btn hide" onclick="nextQuestion()">下一題 ➜</button>
+                <div class="nav-buttons">
+                    <button id="prev-btn" class="nav-btn prev" onclick="prevQuestion()" disabled>⬅️ 上一題</button>
+                    <button id="next-btn" class="nav-btn" onclick="nextQuestion()" disabled>下一題 ➜</button>
+                </div>
+            </div>
+            <div style="margin-top:10px; font-size: 0.9em; color: #FFB7C5;">
+                目前得分: <span id="current-score">0</span>
             </div>
         </div>
 
@@ -210,13 +285,16 @@
             <h1>測驗完成！</h1>
             <div style="font-size: 4rem;">🎉</div>
             <h2 id="final-score-text"></h2>
+            <p>耗時: <span id="final-time">00:00</span></p>
             <p id="result-message"></p>
             <button class="restart-btn" onclick="restartQuiz()">再玩一次 ↻</button>
+            <br><br>
+            <button class="home-icon-btn" onclick="backToHome()">回主頁</button>
         </div>
     </div>
 
     <script>
-        // 題目資料庫 (根據提供的PDF整理)
+        // 題目資料庫
         const questions = [
             {
                 q: "1) Which of the following is not accomplished by accounting?",
@@ -612,25 +690,76 @@
 
         let currentQuestionIndex = 0;
         let score = 0;
+        let userAnswers = []; // 用來儲存每一題的回答狀態 {selectedIndex: number, isCorrect: boolean}
+        
+        // 計時器變數
+        let timerInterval;
+        let totalSeconds = 0;
 
         const startScreen = document.getElementById('start-screen');
         const quizScreen = document.getElementById('quiz-screen');
         const resultScreen = document.getElementById('result-screen');
+        const topBar = document.getElementById('top-bar');
+        
         const questionText = document.getElementById('question-text');
         const answerButtons = document.getElementById('answer-buttons');
         const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
         const currentScoreSpan = document.getElementById('current-score');
         const questionCountSpan = document.getElementById('question-count');
         const progressFill = document.getElementById('progress-fill');
+        const timerText = document.getElementById('timer-text');
 
         function startQuiz() {
             startScreen.classList.add('hide');
+            resultScreen.classList.add('hide');
             quizScreen.classList.remove('hide');
+            topBar.classList.remove('hide');
+            
             currentQuestionIndex = 0;
-            score = 0;
-            currentScoreSpan.innerText = score;
+            userAnswers = new Array(questions.length).fill(null); // 重置答案紀錄
+            updateScore();
+            
+            startTimer();
             showQuestion();
         }
+
+        function confirmHome() {
+            if(confirm("確定要回到主頁嗎？目前的進度會消失喔！")) {
+                backToHome();
+            }
+        }
+
+        function backToHome() {
+            stopTimer();
+            quizScreen.classList.add('hide');
+            resultScreen.classList.add('hide');
+            topBar.classList.add('hide');
+            startScreen.classList.remove('hide');
+        }
+
+        // --- 計時器功能 ---
+        function startTimer() {
+            totalSeconds = 0;
+            timerText.innerText = "00:00";
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            timerText.innerText = `${m}:${s}`;
+        }
+
+        // --- 題目顯示 ---
 
         function showQuestion() {
             resetState();
@@ -642,16 +771,46 @@
             let progress = ((currentQuestionIndex) / questions.length) * 100;
             progressFill.style.width = `${progress}%`;
 
-            question.a.forEach(answer => {
+            // 檢查這一題是否已經回答過
+            const savedAnswer = userAnswers[currentQuestionIndex];
+
+            question.a.forEach((answer, index) => {
                 const button = document.createElement('button');
                 button.innerText = answer.text;
                 button.classList.add('btn');
+                button.dataset.index = index; // 儲存 index
                 if (answer.correct) {
-                    button.dataset.correct = answer.correct;
+                    button.dataset.correct = "true";
                 }
-                button.addEventListener('click', selectAnswer);
+
+                // 如果已經回答過，恢復狀態
+                if (savedAnswer !== null) {
+                    button.disabled = true;
+                    if (answer.correct) {
+                        button.classList.add('correct');
+                    }
+                    if (savedAnswer.selectedIndex === index && !savedAnswer.isCorrect) {
+                        button.classList.add('wrong');
+                    }
+                } else {
+                    // 沒回答過，加入點擊事件
+                    button.addEventListener('click', selectAnswer);
+                }
+                
                 answerButtons.appendChild(button);
             });
+
+            // 按鈕狀態控制
+            prevBtn.disabled = (currentQuestionIndex === 0);
+            
+            if (savedAnswer !== null) {
+                // 如果已回答，顯示下一題按鈕 (如果是最後一題則顯示結算)
+                nextBtn.innerText = currentQuestionIndex === questions.length - 1 ? "看結果 ➜" : "下一題 ➜";
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('hide');
+            } else {
+                nextBtn.classList.add('hide');
+            }
         }
 
         function resetState() {
@@ -664,15 +823,22 @@
         function selectAnswer(e) {
             const selectedBtn = e.target;
             const isCorrect = selectedBtn.dataset.correct === "true";
-            
+            const selectedIndex = parseInt(selectedBtn.dataset.index);
+
+            // 儲存答案
+            userAnswers[currentQuestionIndex] = {
+                selectedIndex: selectedIndex,
+                isCorrect: isCorrect
+            };
+
+            // 顯示顏色
             if (isCorrect) {
                 selectedBtn.classList.add('correct');
-                score++;
-                currentScoreSpan.innerText = score;
             } else {
                 selectedBtn.classList.add('wrong');
             }
 
+            // 鎖定所有按鈕並顯示正確答案
             Array.from(answerButtons.children).forEach(button => {
                 if (button.dataset.correct === "true") {
                     button.classList.add('correct');
@@ -680,7 +846,17 @@
                 button.disabled = true;
             });
 
+            updateScore(); // 更新分數顯示
+
+            nextBtn.innerText = currentQuestionIndex === questions.length - 1 ? "看結果 ➜" : "下一題 ➜";
             nextBtn.classList.remove('hide');
+            nextBtn.disabled = false;
+        }
+
+        function updateScore() {
+            // 計算 userAnswers 陣列中 isCorrect 為 true 的數量
+            score = userAnswers.filter(ans => ans && ans.isCorrect).length;
+            currentScoreSpan.innerText = score;
         }
 
         function nextQuestion() {
@@ -692,14 +868,25 @@
             }
         }
 
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion();
+            }
+        }
+
         function showResults() {
+            stopTimer();
             quizScreen.classList.add('hide');
+            topBar.classList.add('hide'); // 隱藏頂部欄
             resultScreen.classList.remove('hide');
             
             const finalScoreText = document.getElementById('final-score-text');
             const resultMessage = document.getElementById('result-message');
+            const finalTime = document.getElementById('final-time');
             
             finalScoreText.innerText = `${score} / ${questions.length}`;
+            finalTime.innerText = timerText.innerText; // 顯示最終時間
             
             let percentage = (score / questions.length) * 100;
             
@@ -715,8 +902,7 @@
         }
 
         function restartQuiz() {
-            resultScreen.classList.add('hide');
-            startScreen.classList.remove('hide');
+            startQuiz();
         }
     </script>
 </body>
